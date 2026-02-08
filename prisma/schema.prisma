@@ -1,0 +1,141 @@
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+model Provider {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  website     String?
+  email       String?
+  phone       String?
+  description String?
+  activities  Activity[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Internal verification
+  isVerified Boolean @default(false)
+  source     String  @default("manual") // e.g. "manual", "rectrac", "google"
+}
+
+model Location {
+  id         String     @id @default(uuid())
+  name       String? // e.g. "Central Park Fields"
+  address    String
+  city       String
+  state      String
+  zip        String
+
+  // Details
+  lat        Float?
+  lng        Float?
+  activities Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([address, city, state])
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id])
+  locationId  String?
+  location    Location? @relation(fields: [locationId], references: [id])
+
+  // Categorization
+  type     ActivityType
+  category String? // "Soccer", "Art", "Science"
+  tags     String[]
+
+  // Demographics
+  minAgeMo Int? // Minimum age in months
+  maxAgeMo Int? // Maximum age in months
+  gradeMin String? // "K", "1", "PK"
+  gradeMax String?
+
+  // Schedule
+  schedule  Json?     // Detailed schedule object (dates, times, recurrence)
+  startDate DateTime?
+  endDate   DateTime?
+
+  // Financials
+  price    Decimal? @db.Decimal(10, 2)
+  currency String   @default("USD")
+
+  // Registration
+  regStatus   RegStatus @default(OPEN)
+  regUrl      String?
+  regOpenDate DateTime?
+  regDeadline DateTime?
+
+  // Metadata
+  sourceUrl   String?
+  imageUrl    String?
+  externalId  String?   @unique // Scraper ID (e.g. RecTrac Activity Code)
+  lastScraped DateTime?
+  
+  // Vector embedding for semantic search (using pgvector)
+  embedding   Unsupported("vector(1536)")?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  savedBy            SavedActivity[]
+  selectedBy         SelectedActivity[]  @relation("SelectedActivities")
+}
+
+model SavedActivity {
+  id        String   @id @default(uuid())
+  userId    String   // References Supabase Auth User ID
+  activityId String
+  activity  Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, activityId])
+}
+
+// User's selected activities for their personal schedule
+model SelectedActivity {
+  id         String   @id @default(uuid())
+  userId     String   // References Supabase Auth User ID
+  activityId String
+  activity   Activity @relation("SelectedActivities", fields: [activityId], references: [id], onDelete: Cascade)
+  status     SelectionStatus @default(TENTATIVE)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, activityId])
+  @@index([userId])
+}
+
+enum SelectionStatus {
+  TENTATIVE
+  CONFIRMED
+}
+
+enum ActivityType {
+  CAMP
+  CLASS
+  DROP_IN
+  EVENT
+  LEAGUE
+}
+
+enum RegStatus {
+  OPEN
+  CLOSED
+  WAITLIST
+  COMING_SOON
+}

@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Playful but Premium Palette */
+    --background: #fdfbf7;
+    /* Warm white/cream */
+    --foreground: #1e1b4b;
+    /* Deep Indigo */
+
+    --primary: #6366f1;
+    /* Indigo 500 */
+    --primary-foreground: #ffffff;
+
+    --secondary: #e0e7ff;
+    /* Indigo 100 */
+    --secondary-foreground: #3730a3;
+    /* Indigo 800 */
+
+    --accent: #f472b6;
+    /* Pink 400 - Playful accent */
+    --accent-foreground: #ffffff;
+
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+
+    --card: #ffffff;
+    --card-foreground: #1e1b4b;
+
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #6366f1;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: #0f172a;
+    /* Slate 900 */
+    --foreground: #f8fafc;
+    /* Slate 50 */
+
+    --primary: #818cf8;
+    /* Indigo 400 */
+    --primary-foreground: #0f172a;
+
+    --secondary: #1e293b;
+    /* Slate 800 */
+    --secondary-foreground: #e2e8f0;
+
+    --accent: #f472b6;
+    --accent-foreground: #ffffff;
+
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
+
+    --border: #334155;
+    --input: #334155;
+    --ring: #818cf8;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
